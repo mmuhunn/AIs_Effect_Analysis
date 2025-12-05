@@ -8,11 +8,11 @@ import plotly.graph_objects as go
 # ==========================================
 st.set_page_config(page_title="AI Trend Shift Analysis", layout="wide")
 
-st.title("📊 AI 관심도의 구조적 이동: 2023 vs 2025")
+st.title("📊 Structural Shift in AI Interest: 2023 vs 2025")
 
 st.markdown("""
-**Wikipedia Pageviews** 데이터를 기반으로, ChatGPT 등장 초기(2023)와 정착기(2025)의 
-사회적 관심사가 어떻게 **기술(Tech)**에서 **사회적 영향(Social Impact)**으로 이동했는지 분석합니다.
+Based on **Wikipedia Pageviews** data, this analysis examines how social interest shifted from 
+**Technology (Tech)** to **Social Impact** during the early emergence (2023) and stabilization period (2025) of ChatGPT.
 """)
 
 @st.cache_data
@@ -146,9 +146,9 @@ df_analyzed['change_pct'] = df_analyzed['change_pct'].replace([float('inf'), flo
 # ==========================================
 
 # ChatGPT 제외 옵션
-st.sidebar.markdown("### ⚙️ 필터 옵션")
-exclude_chatgpt = st.sidebar.checkbox("ChatGPT 제외", value=False, 
-                                      help="ChatGPT 관련 키워드를 분석에서 제외합니다. 다른 키워드들의 비교가 더 쉬워집니다.")
+st.sidebar.markdown("### ⚙️ Filter Options")
+exclude_chatgpt = st.sidebar.checkbox("Exclude ChatGPT", value=False, 
+                                      help="Exclude ChatGPT-related keywords from the analysis. This makes it easier to compare other keywords.")
 
 # ChatGPT 필터링 함수
 def filter_chatgpt(df, exclude):
@@ -176,20 +176,20 @@ st.markdown("---")
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.metric("2023년 총 조회수", f"{total_views_23:,.0f}", delta=None)
+    st.metric("Total Views 2023", f"{total_views_23:,.0f}", delta=None)
 
 with col2:
-    st.metric("2025년 총 조회수", f"{total_views_25:,.0f}", 
+    st.metric("Total Views 2025", f"{total_views_25:,.0f}", 
               delta=f"{total_change_pct:+.1f}%")
 
 with col3:
     tech_share_change = cat_share_25.get('Technology', 0) - cat_share_23.get('Technology', 0)
-    st.metric("Technology 점유율", f"{cat_share_25.get('Technology', 0):.1f}%", 
+    st.metric("Technology Share", f"{cat_share_25.get('Technology', 0):.1f}%", 
               delta=f"{tech_share_change:+.1f}%p")
 
 with col4:
     social_share_change = cat_share_25.get('Social_Impact', 0) - cat_share_23.get('Social_Impact', 0)
-    st.metric("Social Impact 점유율", f"{cat_share_25.get('Social_Impact', 0):.1f}%", 
+    st.metric("Social Impact Share", f"{cat_share_25.get('Social_Impact', 0):.1f}%", 
               delta=f"{social_share_change:+.1f}%p")
 
 st.markdown("---")
@@ -200,10 +200,10 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs(["📈 Trend Overview", "🕸️ Category
 with tab1:
     st.header("🔥 Top Keywords Ranking Change")
     if exclude_chatgpt:
-        st.info("ℹ️ ChatGPT 관련 키워드가 제외된 분석입니다.")
+        st.info("ℹ️ ChatGPT-related keywords are excluded from this analysis.")
     
     # 카테고리 필터 추가 (체크박스)
-    st.markdown("**📂 카테고리 필터**")
+    st.markdown("**📂 Category Filter**")
     available_categories = sorted(df_filtered['Category'].unique().tolist())
     
     # 체크박스로 각 카테고리 표시
@@ -219,18 +219,18 @@ with tab1:
     if len(selected_categories) == 0:
         # 아무것도 선택하지 않으면 전체 표시
         df_trend = df_filtered.copy()
-        filter_info = "전체 카테고리"
+        filter_info = "All Categories"
     else:
         df_trend = df_filtered[df_filtered['Category'].isin(selected_categories)].copy()
         filter_info = ", ".join(selected_categories)
     
     if len(df_trend) == 0:
-        st.warning("선택한 카테고리 조건에 해당하는 키워드가 없습니다.")
+        st.warning("No keywords match the selected category conditions.")
     else:
-        st.caption(f"📊 현재 표시 중: {filter_info} ({len(df_trend)}개 키워드)")
+        st.caption(f"📊 Currently displaying: {filter_info} ({len(df_trend)} keywords)")
         
         # 상위 N개 선택
-        top_n = st.slider("표시할 상위 키워드 개수", 5, min(30, len(df_trend)), 10)
+        top_n = st.slider("Number of top keywords to display", 5, min(30, len(df_trend)), 10)
         
         # 2023년과 2025년 각각의 Top N 추출 (카테고리 필터링된 데이터 사용)
         top_23 = df_trend.nlargest(top_n, 'views_2023')
@@ -239,7 +239,7 @@ with tab1:
         col1, col2 = st.columns(2)
         
         with col1:
-            st.subheader("2023년 (도입기) Top Keywords")
+            st.subheader("2023 (Introduction Period) Top Keywords")
             if len(top_23) > 0:
                 fig23 = px.bar(top_23, x='views_2023', y='title', orientation='h', 
                                color='Category', title="Feb 2023 Views",
@@ -247,10 +247,10 @@ with tab1:
                 fig23.update_layout(yaxis={'categoryorder':'total ascending'}, height=400)
                 st.plotly_chart(fig23, use_container_width=True)
             else:
-                st.info("2023년 데이터가 없습니다.")
+                st.info("No 2023 data available.")
             
         with col2:
-            st.subheader("2025년 (정착기) Top Keywords")
+            st.subheader("2025 (Stabilization Period) Top Keywords")
             if len(top_25) > 0:
                 fig25 = px.bar(top_25, x='views_2025', y='title', orientation='h', 
                                color='Category', title="Sep 2025 Views",
@@ -258,38 +258,38 @@ with tab1:
                 fig25.update_layout(yaxis={'categoryorder':'total ascending'}, height=400)
                 st.plotly_chart(fig25, use_container_width=True)
             else:
-                st.info("2025년 데이터가 없습니다.")
+                st.info("No 2025 data available.")
         
         # 변화율이 큰 키워드 표시 (카테고리 필터링된 데이터 사용)
-        st.subheader("📊 변화율이 큰 키워드")
+        st.subheader("📊 Keywords with Significant Change Rate")
         col_a, col_b = st.columns(2)
         
         with col_a:
-            st.markdown("**🚀 급상승 키워드 (2023 → 2025)**")
+            st.markdown("**🚀 Rapidly Rising Keywords (2023 → 2025)**")
             rising_df = df_trend[df_trend['views_2023'] > 0]
             if len(rising_df) > 0:
                 rising = rising_df.nlargest(5, 'change_pct')[['title', 'Category', 'views_2023', 'views_2025', 'change_pct']]
                 rising_display = rising.copy()
-                rising_display.columns = ['키워드', '카테고리', '2023 조회수', '2025 조회수', '변화율(%)']
+                rising_display.columns = ['Keyword', 'Category', '2023 Views', '2025 Views', 'Change Rate (%)']
                 st.dataframe(rising_display, use_container_width=True, hide_index=True)
             else:
-                st.info("급상승 키워드가 없습니다.")
+                st.info("No rapidly rising keywords.")
         
         with col_b:
-            st.markdown("**📉 급하락 키워드 (2023 → 2025)**")
+            st.markdown("**📉 Rapidly Declining Keywords (2023 → 2025)**")
             falling_df = df_trend[df_trend['views_2023'] > 0]
             if len(falling_df) > 0:
                 falling = falling_df.nsmallest(5, 'change_pct')[['title', 'Category', 'views_2023', 'views_2025', 'change_pct']]
                 falling_display = falling.copy()
-                falling_display.columns = ['키워드', '카테고리', '2023 조회수', '2025 조회수', '변화율(%)']
+                falling_display.columns = ['Keyword', 'Category', '2023 Views', '2025 Views', 'Change Rate (%)']
                 st.dataframe(falling_display, use_container_width=True, hide_index=True)
             else:
-                st.info("급하락 키워드가 없습니다.")
+                st.info("No rapidly declining keywords.")
 
 with tab2:
-    st.header("💡 관심의 구조적 이동 (Category Shift)")
+    st.header("💡 Structural Shift in Interest (Category Shift)")
     if exclude_chatgpt:
-        st.info("ℹ️ ChatGPT 관련 키워드가 제외된 분석입니다.")
+        st.info("ℹ️ ChatGPT-related keywords are excluded from this analysis.")
     
     # 카테고리별 총 조회수 집계 (필터링된 데이터 사용)
     cat_group = df_filtered.groupby('Category')[['views_2023', 'views_2025']].sum().reset_index()
@@ -312,7 +312,7 @@ with tab2:
         cat_long['Year'] = cat_long['Year'].map({'views_2023': '2023', 'views_2025': '2025'})
         
         fig_cat = px.bar(cat_long, x='Category', y='Views', color='Year', barmode='group',
-                         title="카테고리별 조회수 총량 변화",
+                         title="Total Views Change by Category",
                          text_auto='.2s',
                          color_discrete_map={'2023': '#1f77b4', '2025': '#ff7f0e'})
         fig_cat.update_layout(height=400)
@@ -326,18 +326,18 @@ with tab2:
         share_long['Year'] = share_long['Year'].map({'share_2023': '2023', 'share_2025': '2025'})
         
         fig_share = px.bar(share_long, x='Category', y='Share', color='Year', barmode='group',
-                          title="카테고리별 점유율 변화 (%)",
+                          title="Share Change by Category (%)",
                           text_auto='.1f',
                           color_discrete_map={'2023': '#1f77b4', '2025': '#ff7f0e'})
-        fig_share.update_layout(yaxis_title="점유율 (%)", height=400)
+        fig_share.update_layout(yaxis_title="Share (%)", height=400)
         st.plotly_chart(fig_share, use_container_width=True)
     
     # 상세 통계 테이블
-    st.subheader("📊 카테고리별 상세 통계")
+    st.subheader("📊 Detailed Statistics by Category")
     cat_stats = cat_group[['Category', 'views_2023', 'views_2025', 'change', 'change_pct', 
                           'share_2023', 'share_2025', 'share_change']].copy()
-    cat_stats.columns = ['카테고리', '2023 조회수', '2025 조회수', '변화량', '변화율(%)', 
-                        '2023 점유율(%)', '2025 점유율(%)', '점유율 변화(p)']
+    cat_stats.columns = ['Category', '2023 Views', '2025 Views', 'Change', 'Change Rate (%)', 
+                        '2023 Share (%)', '2025 Share (%)', 'Share Change (pp)']
     cat_stats = cat_stats.round(1)
     st.dataframe(cat_stats, use_container_width=True, hide_index=True)
     
@@ -346,25 +346,25 @@ with tab2:
     social_change = cat_group[cat_group['Category'] == 'Social_Impact']['change_pct'].values[0] if len(cat_group[cat_group['Category'] == 'Social_Impact']) > 0 else 0
     
     st.success(f"""
-    **🔍 핵심 인사이트:**
+    **🔍 Key Insights:**
     
-    - **Technology 카테고리**: {tech_change:+.1f}% 변화 | 점유율 {cat_group[cat_group['Category'] == 'Technology']['share_change'].values[0] if len(cat_group[cat_group['Category'] == 'Technology']) > 0 else 0:+.1f}%p 변화
-      → ChatGPT 등장 초기 폭발적 관심 이후, 기술 자체에 대한 관심은 상대적으로 안정화 단계
+    - **Technology Category**: {tech_change:+.1f}% change | Share {cat_group[cat_group['Category'] == 'Technology']['share_change'].values[0] if len(cat_group[cat_group['Category'] == 'Technology']) > 0 else 0:+.1f}pp change
+      → After the initial explosive interest in ChatGPT, interest in the technology itself has relatively stabilized
     
-    - **Social_Impact 카테고리**: {social_change:+.1f}% 변화 | 점유율 {cat_group[cat_group['Category'] == 'Social_Impact']['share_change'].values[0] if len(cat_group[cat_group['Category'] == 'Social_Impact']) > 0 else 0:+.1f}%p 변화
-      → AI가 사회에 미치는 영향(고용, 윤리, 저작권 등)에 대한 관심이 상대적으로 증가하는 추세
+    - **Social_Impact Category**: {social_change:+.1f}% change | Share {cat_group[cat_group['Category'] == 'Social_Impact']['share_change'].values[0] if len(cat_group[cat_group['Category'] == 'Social_Impact']) > 0 else 0:+.1f}pp change
+      → Interest in AI's social impact (employment, ethics, copyright, etc.) is relatively increasing
     
-    - **Application 카테고리**: {cat_group[cat_group['Category'] == 'Application']['change_pct'].values[0] if len(cat_group[cat_group['Category'] == 'Application']) > 0 else 0:+.1f}% 변화
-      → 실제 활용 사례에 대한 관심 변화 추이
+    - **Application Category**: {cat_group[cat_group['Category'] == 'Application']['change_pct'].values[0] if len(cat_group[cat_group['Category'] == 'Application']) > 0 else 0:+.1f}% change
+      → Trends in interest in practical use cases
     """)
 
 with tab3:
-    st.header("📊 Deep Insights: 변화 패턴 분석")
+    st.header("📊 Deep Insights: Change Pattern Analysis")
     if exclude_chatgpt:
-        st.info("ℹ️ ChatGPT 관련 키워드가 제외된 분석입니다.")
+        st.info("ℹ️ ChatGPT-related keywords are excluded from this analysis.")
     
     # 산점도: 2023 vs 2025
-    st.subheader("🔄 키워드별 변화 패턴 (산점도)")
+    st.subheader("🔄 Change Pattern by Keyword (Scatter Plot)")
     # size는 0 이상의 값만 허용하므로 절댓값 사용 (필터링된 데이터 사용)
     df_scatter = df_filtered.copy()
     df_scatter['abs_change'] = df_scatter['change'].abs()
@@ -372,77 +372,77 @@ with tab3:
     fig_scatter = px.scatter(df_scatter, x='views_2023', y='views_2025', 
                             color='Category', size='abs_change',
                             hover_data=['title', 'change_pct', 'change'],
-                            title="2023년 조회수 vs 2025년 조회수 (점 크기 = 변화량의 절댓값)",
-                            labels={'views_2023': '2023년 조회수', 'views_2025': '2025년 조회수'},
+                            title="2023 Views vs 2025 Views (Point size = Absolute change)",
+                            labels={'views_2023': '2023 Views', 'views_2025': '2025 Views'},
                             color_discrete_map={'Technology': '#1f77b4', 'Application': '#ff7f0e', 'Social_Impact': '#2ca02c'})
     
     # 대각선 추가 (변화 없음 기준선)
     max_val = max(df_filtered['views_2023'].max(), df_filtered['views_2025'].max())
     fig_scatter.add_trace(go.Scatter(x=[0, max_val], y=[0, max_val], 
-                                   mode='lines', name='변화 없음',
+                                   mode='lines', name='No Change',
                                    line=dict(color='gray', dash='dash')))
     fig_scatter.update_layout(height=500)
     st.plotly_chart(fig_scatter, use_container_width=True)
     
-    st.caption("💡 대각선 위쪽: 증가한 키워드 | 아래쪽: 감소한 키워드")
+    st.caption("💡 Above diagonal: Increased keywords | Below diagonal: Decreased keywords")
     
     # 카테고리별 평균 변화율
-    st.subheader("📈 카테고리별 평균 변화율")
+    st.subheader("📈 Average Change Rate by Category")
     cat_avg_change = df_filtered.groupby('Category').agg({
         'change_pct': 'mean',
         'change': 'mean',
         'views_2023': 'mean',
         'views_2025': 'mean'
     }).reset_index()
-    cat_avg_change.columns = ['카테고리', '평균 변화율(%)', '평균 변화량', '평균 2023 조회수', '평균 2025 조회수']
+    cat_avg_change.columns = ['Category', 'Avg Change Rate (%)', 'Avg Change', 'Avg 2023 Views', 'Avg 2025 Views']
     cat_avg_change = cat_avg_change.round(1)
     st.dataframe(cat_avg_change, use_container_width=True, hide_index=True)
     
     # 새로운 키워드 (2023에는 없었지만 2025에 등장)
-    st.subheader("✨ 신규 등장 키워드 (2023년 0건 → 2025년 등장)")
+    st.subheader("✨ Newly Appeared Keywords (0 in 2023 → Appeared in 2025)")
     new_keywords = df_filtered[(df_filtered['views_2023'] == 0) & (df_filtered['views_2025'] > 0)].nlargest(10, 'views_2025')
     if len(new_keywords) > 0:
         new_display = new_keywords[['title', 'Category', 'views_2025']].copy()
-        new_display.columns = ['키워드', '카테고리', '2025 조회수']
+        new_display.columns = ['Keyword', 'Category', '2025 Views']
         st.dataframe(new_display, use_container_width=True, hide_index=True)
     else:
-        st.info("신규 등장 키워드가 없습니다.")
+        st.info("No newly appeared keywords.")
     
     # 사라진 키워드 (2023에는 있었지만 2025에 사라짐)
-    st.subheader("📉 사라진 키워드 (2023년 존재 → 2025년 0건)")
+    st.subheader("📉 Disappeared Keywords (Existed in 2023 → 0 in 2025)")
     disappeared = df_filtered[(df_filtered['views_2023'] > 0) & (df_filtered['views_2025'] == 0)].nlargest(10, 'views_2023')
     if len(disappeared) > 0:
         dis_display = disappeared[['title', 'Category', 'views_2023']].copy()
-        dis_display.columns = ['키워드', '카테고리', '2023 조회수']
+        dis_display.columns = ['Keyword', 'Category', '2023 Views']
         st.dataframe(dis_display, use_container_width=True, hide_index=True)
     else:
-        st.info("사라진 키워드가 없습니다.")
+        st.info("No disappeared keywords.")
 
 with tab4:
-    st.header("🔍 키워드 검색 및 조회수 변화 분석")
+    st.header("🔍 Keyword Search and View Change Analysis")
     if exclude_chatgpt:
-        st.info("ℹ️ ChatGPT 관련 키워드가 제외된 분석입니다.")
+        st.info("ℹ️ ChatGPT-related keywords are excluded from this analysis.")
     
     # 검색 옵션
     col_search1, col_search2 = st.columns([3, 1])
     with col_search1:
-        search_query = st.text_input("🔎 키워드 검색", 
-                                     placeholder="예: ChatGPT, AI_ethics, Layoff 등 (부분 일치 검색 가능)",
-                                     help="키워드의 일부만 입력해도 검색됩니다.")
+        search_query = st.text_input("🔎 Keyword Search", 
+                                     placeholder="e.g., ChatGPT, AI_ethics, Layoff (partial match available)",
+                                     help="You can search by entering only part of the keyword.")
     with col_search2:
-        search_mode = st.selectbox("검색 모드", ["부분 일치", "정확히 일치"], index=0)
+        search_mode = st.selectbox("Search Mode", ["Partial Match", "Exact Match"], index=0)
     
     if search_query:
         search_query_lower = search_query.lower()
         
         # 검색 모드에 따라 필터링
-        if search_mode == "정확히 일치":
+        if search_mode == "Exact Match":
             search_results = df_filtered[df_filtered['title'].str.lower() == search_query_lower]
         else:
             search_results = df_filtered[df_filtered['title'].str.lower().str.contains(search_query_lower, na=False)]
         
         if len(search_results) > 0:
-            st.success(f"✅ {len(search_results)}개의 키워드를 찾았습니다.")
+            st.success(f"✅ Found {len(search_results)} keywords.")
             
             # 검색 결과 요약
             col_sum1, col_sum2, col_sum3, col_sum4 = st.columns(4)
@@ -453,32 +453,32 @@ with tab4:
             total_change_pct_search = ((total_views_25_search - total_views_23_search) / total_views_23_search * 100) if total_views_23_search > 0 else 0
             
             with col_sum1:
-                st.metric("2023년 총 조회수", f"{total_views_23_search:,.0f}")
+                st.metric("Total Views 2023", f"{total_views_23_search:,.0f}")
             with col_sum2:
-                st.metric("2025년 총 조회수", f"{total_views_25_search:,.0f}", 
+                st.metric("Total Views 2025", f"{total_views_25_search:,.0f}", 
                          delta=f"{total_change_pct_search:+.1f}%")
             with col_sum3:
-                st.metric("변화량", f"{total_change_search:+,.0f}")
+                st.metric("Change", f"{total_change_search:+,.0f}")
             with col_sum4:
                 # 평균 변화율 계산 시 무한대 값 제외
                 valid_changes = search_results['change_pct'].replace([float('inf'), float('-inf')], pd.NA)
                 avg_change_pct = valid_changes.mean()
                 if pd.isna(avg_change_pct):
-                    st.metric("평균 변화율", "N/A")
+                    st.metric("Avg Change Rate", "N/A")
                 else:
                     # 너무 큰 값은 제한하여 표시
                     display_avg = min(avg_change_pct, 1000) if avg_change_pct > 1000 else avg_change_pct
-                    st.metric("평균 변화율", f"{display_avg:+.1f}%")
+                    st.metric("Avg Change Rate", f"{display_avg:+.1f}%")
             
             # 시각화
-            st.subheader("📊 조회수 변화 시각화")
+            st.subheader("📊 View Change Visualization")
             
             # 표시할 키워드 수 결정
             max_display = min(15, len(search_results))
             search_viz = search_results.sort_values('views_2025', ascending=False).head(max_display)
             
             if len(search_results) > max_display:
-                st.info(f"💡 검색 결과가 {len(search_results)}개로 많아 상위 {max_display}개만 시각화합니다.")
+                st.info(f"💡 Displaying top {max_display} keywords out of {len(search_results)} results.")
             
             # 키워드명이 너무 길면 축약
             search_viz_display = search_viz.copy()
@@ -487,7 +487,7 @@ with tab4:
             )
             
             # 1. 조회수 비교 차트 (가로 막대 그래프로 변경)
-            st.markdown("#### 📈 키워드별 조회수 비교 (2023 vs 2025)")
+            st.markdown("#### 📈 View Comparison by Keyword (2023 vs 2025)")
             search_long = pd.melt(search_viz, id_vars=['title', 'Category'],
                                  value_vars=['views_2023', 'views_2025'],
                                  var_name='Year', value_name='Views')
@@ -496,14 +496,14 @@ with tab4:
             # 가로 막대 그래프로 변경 (키워드명이 더 잘 보임)
             fig_search = px.bar(search_long, y='title', x='Views', color='Year', barmode='group',
                                orientation='h',
-                               labels={'title': '키워드', 'Views': '조회수'},
+                               labels={'title': 'Keyword', 'Views': 'Views'},
                                color_discrete_map={'2023': '#3498db', '2025': '#e67e22'},
                                text='Views')
             fig_search.update_traces(texttemplate='%{text:,.0f}', textposition='outside')
             fig_search.update_layout(
                 height=max(400, len(search_viz) * 40),
                 yaxis={'categoryorder': 'total ascending'},
-                xaxis_title="조회수",
+                xaxis_title="Views",
                 yaxis_title="",
                 showlegend=True,
                 margin=dict(l=200, r=50, t=20, b=50)
@@ -511,7 +511,7 @@ with tab4:
             st.plotly_chart(fig_search, use_container_width=True)
             
             # 2. 변화율 차트 (변화율이 너무 큰 경우 처리)
-            st.markdown("#### 📊 키워드별 변화율")
+            st.markdown("#### 📊 Change Rate by Keyword")
             
             # 변화율이 너무 큰 경우 제한 (표시용)
             search_change = search_viz.copy()
@@ -520,7 +520,7 @@ with tab4:
             )
             search_change['change_label'] = search_change.apply(
                 lambda row: f"{row['change_pct']:.1f}%" if abs(row['change_pct']) <= 1000 
-                else ("신규" if row['change_pct'] > 1000 else "사라짐"),
+                else ("New" if row['change_pct'] > 1000 else "Disappeared"),
                 axis=1
             )
             
@@ -528,14 +528,14 @@ with tab4:
             fig_change = px.bar(search_change, y='title', x='change_pct_display',
                                color='change_pct',
                                orientation='h',
-                               labels={'title': '키워드', 'change_pct_display': '변화율 (%)'},
+                               labels={'title': 'Keyword', 'change_pct_display': 'Change Rate (%)'},
                                color_continuous_scale='RdYlGn',
                                text='change_label')
             fig_change.update_traces(textposition='outside')
             fig_change.update_layout(
                 height=max(400, len(search_viz) * 40),
                 yaxis={'categoryorder': 'total ascending'},
-                xaxis_title="변화율 (%)",
+                xaxis_title="Change Rate (%)",
                 yaxis_title="",
                 xaxis_range=[-100, 1000],
                 showlegend=False,
@@ -547,67 +547,67 @@ with tab4:
             # 변화율이 1000%를 넘는 키워드에 대한 안내
             extreme_changes = search_change[abs(search_change['change_pct']) > 1000]
             if len(extreme_changes) > 0:
-                st.caption(f"💡 변화율이 ±1000%를 넘는 키워드는 '신규' 또는 '사라짐'으로 표시됩니다. (총 {len(extreme_changes)}개)")
+                st.caption(f"💡 Keywords with change rate exceeding ±1000% are displayed as 'New' or 'Disappeared'. (Total: {len(extreme_changes)})")
             
             # 상세 데이터 테이블
-            st.subheader("📋 검색 결과 상세 데이터")
+            st.subheader("📋 Detailed Search Results")
             
             # 정렬 옵션
-            sort_option = st.selectbox("정렬 기준", 
-                                      ['2025 조회수 (내림차순)', '2023 조회수 (내림차순)', 
-                                       '변화율 (내림차순)', '변화율 (오름차순)', '키워드명 (가나다순)'],
+            sort_option = st.selectbox("Sort By", 
+                                      ['2025 Views (Descending)', '2023 Views (Descending)', 
+                                       'Change Rate (Descending)', 'Change Rate (Ascending)', 'Keyword (A-Z)'],
                                       key="search_sort")
             
             search_display = search_results.copy()
-            if sort_option == '2025 조회수 (내림차순)':
+            if sort_option == '2025 Views (Descending)':
                 search_display = search_display.sort_values('views_2025', ascending=False)
-            elif sort_option == '2023 조회수 (내림차순)':
+            elif sort_option == '2023 Views (Descending)':
                 search_display = search_display.sort_values('views_2023', ascending=False)
-            elif sort_option == '변화율 (내림차순)':
+            elif sort_option == 'Change Rate (Descending)':
                 search_display = search_display.sort_values('change_pct', ascending=False)
-            elif sort_option == '변화율 (오름차순)':
+            elif sort_option == 'Change Rate (Ascending)':
                 search_display = search_display.sort_values('change_pct', ascending=True)
             else:
                 search_display = search_display.sort_values('title', ascending=True)
             
             display_cols = ['title', 'Category', 'views_2023', 'views_2025', 'change', 'change_pct']
             search_table = search_display[display_cols].copy()
-            search_table.columns = ['키워드', '카테고리', '2023 조회수', '2025 조회수', '변화량', '변화율(%)']
+            search_table.columns = ['Keyword', 'Category', '2023 Views', '2025 Views', 'Change', 'Change Rate (%)']
             search_table = search_table.round(1)
             
             st.dataframe(search_table, use_container_width=True, hide_index=True)
             
             # CSV 다운로드
             csv_search = search_results.to_csv(index=False).encode('utf-8')
-            st.download_button("📥 검색 결과 CSV 다운로드", 
+            st.download_button("📥 Download Search Results CSV", 
                              data=csv_search, 
                              file_name=f"keyword_search_{search_query.replace(' ', '_')}.csv", 
                              mime="text/csv")
         else:
-            st.warning(f"❌ '{search_query}'와 일치하는 키워드를 찾을 수 없습니다.")
-            st.info("💡 팁: 부분 일치 모드에서는 키워드의 일부만 입력해도 검색됩니다. 예: 'AI'를 입력하면 'AI_ethics', 'AI_art' 등이 검색됩니다.")
+            st.warning(f"❌ No keywords found matching '{search_query}'.")
+            st.info("💡 Tip: In partial match mode, you can search by entering only part of the keyword. For example, entering 'AI' will search for 'AI_ethics', 'AI_art', etc.")
     else:
-        st.info("👆 위 검색창에 키워드를 입력하세요. 예: 'ChatGPT', 'AI_ethics', 'Layoff' 등")
+        st.info("👆 Enter a keyword in the search box above. Examples: 'ChatGPT', 'AI_ethics', 'Layoff'")
         
         # 인기 검색어 추천
-        st.subheader("💡 인기 키워드 추천")
+        st.subheader("💡 Popular Keyword Recommendations")
         popular_keywords = df_filtered.nlargest(10, 'views_2025')[['title', 'Category', 'views_2025']].copy()
-        popular_keywords.columns = ['키워드', '카테고리', '2025 조회수']
+        popular_keywords.columns = ['Keyword', 'Category', '2025 Views']
         st.dataframe(popular_keywords, use_container_width=True, hide_index=True)
 
 with tab5:
-    st.header("🔍 원본 데이터 탐색")
+    st.header("🔍 Raw Data Exploration")
     if exclude_chatgpt:
-        st.info("ℹ️ ChatGPT 관련 키워드가 제외된 분석입니다.")
+        st.info("ℹ️ ChatGPT-related keywords are excluded from this analysis.")
     
     # 필터 옵션
     col_filter1, col_filter2 = st.columns(2)
     with col_filter1:
-        selected_category = st.multiselect("카테고리 필터", 
+        selected_category = st.multiselect("Category Filter", 
                                           options=['All'] + list(df_filtered['Category'].unique()),
                                           default=['All'])
     with col_filter2:
-        min_views = st.number_input("최소 조회수 (2025)", min_value=0, value=0)
+        min_views = st.number_input("Minimum Views (2025)", min_value=0, value=0)
     
     # 필터링 (이미 ChatGPT 필터링된 df_filtered 사용)
     df_display_filtered = df_filtered.copy()
@@ -616,15 +616,15 @@ with tab5:
     df_display_filtered = df_display_filtered[df_display_filtered['views_2025'] >= min_views]
     
     # 정렬 옵션
-    sort_by = st.selectbox("정렬 기준", 
-                          ['2025 조회수 (내림차순)', '2023 조회수 (내림차순)', 
-                           '변화율 (내림차순)', '변화율 (오름차순)'])
+    sort_by = st.selectbox("Sort By", 
+                          ['2025 Views (Descending)', '2023 Views (Descending)', 
+                           'Change Rate (Descending)', 'Change Rate (Ascending)'])
     
-    if sort_by == '2025 조회수 (내림차순)':
+    if sort_by == '2025 Views (Descending)':
         df_display = df_display_filtered.sort_values(by='views_2025', ascending=False)
-    elif sort_by == '2023 조회수 (내림차순)':
+    elif sort_by == '2023 Views (Descending)':
         df_display = df_display_filtered.sort_values(by='views_2023', ascending=False)
-    elif sort_by == '변화율 (내림차순)':
+    elif sort_by == 'Change Rate (Descending)':
         df_display = df_display_filtered.sort_values(by='change_pct', ascending=False)
     else:
         df_display = df_display_filtered.sort_values(by='change_pct', ascending=True)
@@ -632,14 +632,14 @@ with tab5:
     # 표시용 컬럼 선택
     display_cols = ['title', 'Category', 'views_2023', 'views_2025', 'change', 'change_pct']
     df_display = df_display[display_cols].copy()
-    df_display.columns = ['키워드', '카테고리', '2023 조회수', '2025 조회수', '변화량', '변화율(%)']
+    df_display.columns = ['Keyword', 'Category', '2023 Views', '2025 Views', 'Change', 'Change Rate (%)']
     df_display = df_display.round(1)
     
     st.dataframe(df_display, use_container_width=True, hide_index=True)
     
-    st.caption(f"총 {len(df_display)}개 키워드 표시 중")
+    st.caption(f"Displaying {len(df_display)} keywords")
     
     csv = df_display_filtered.to_csv(index=False).encode('utf-8')
-    st.download_button("📥 필터링된 데이터 CSV 다운로드", 
+    st.download_button("📥 Download Filtered Data CSV", 
                       data=csv, file_name="ai_trend_analysis_filtered.csv", mime="text/csv")
 
