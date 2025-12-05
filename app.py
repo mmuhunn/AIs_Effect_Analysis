@@ -18,10 +18,30 @@ st.markdown("""
 @st.cache_data
 def load_data():
     # 데이터 로드 (실제 파일명 사용)
-    df_23 = pd.read_csv("data/monthly_views_202302.csv")
-    df_25 = pd.read_csv("data/monthly_views_202509.csv")
+    # 제목에 쉼표가 포함된 경우를 처리: 마지막 2개 필드가 조회수와 카테고리
+    def parse_csv_with_comma_in_title(filepath):
+        rows = []
+        with open(filepath, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                # 마지막 2개 쉼표로만 분리 (제목에 쉼표가 있어도 처리 가능)
+                parts = line.rsplit(',', 2)
+                if len(parts) == 3:
+                    rows.append({'title': parts[0], 'views': parts[1], 'category': parts[2]})
+        return pd.DataFrame(rows)
     
-    # 컬럼명 통일
+    df_23 = parse_csv_with_comma_in_title("data/spark_2023.csv")
+    df_25 = parse_csv_with_comma_in_title("data/spark_2025.csv")
+    
+    # views를 숫자로 변환 (\N 같은 값도 처리)
+    df_23['views'] = pd.to_numeric(df_23['views'].replace('\\N', '0'), errors='coerce').fillna(0).astype(int)
+    df_25['views'] = pd.to_numeric(df_25['views'].replace('\\N', '0'), errors='coerce').fillna(0).astype(int)
+    
+    # 컬럼명 통일 (Category 컬럼은 나중에 재할당하므로 여기서는 제외)
+    df_23 = df_23[['title', 'views']].copy()
+    df_25 = df_25[['title', 'views']].copy()
     df_23.columns = ['title', 'views_2023']
     df_25.columns = ['title', 'views_2025']
     
@@ -41,7 +61,7 @@ def load_data():
             'college football', 'college basketball', 'college baseball',
             'football', 'basketball', 'baseball', 'soccer', 'hockey',
             'olympics', 'olympic', 'fifa', 'uefa',
-            'playoff', 'playoffs', 'semifinal', 'final', 'quarterfinal',
+            'playoff', 'playoffs', 'ㅃsemifinal', 'final', 'quarterfinal',
             'season', 'game', 'match', 'league', 'team', 'player', 'coach',
             'stadium', 'arena', 'field', 'court', 'pitch'
         ]
@@ -63,15 +83,19 @@ def load_data():
         
         return True
     
+    # 원본 총합 저장 (필터링 전)
+    original_total_23 = df_23['views_2023'].sum()
+    original_total_25 = df_25['views_2025'].sum()
+    
     df_23 = df_23[df_23['title'].apply(is_clean)]
     df_25 = df_25[df_25['title'].apply(is_clean)]
     
     # 데이터 병합 (Outer Join)
     df_merged = pd.merge(df_23, df_25, on='title', how='outer').fillna(0)
     
-    return df_merged
+    return df_merged, original_total_23, original_total_25
 
-raw_df = load_data()
+raw_df, original_total_23, original_total_25 = load_data()
 
 # ==========================================
 # 2. 키워드 카테고리 정의 (Config에서 가져옴)
@@ -132,14 +156,14 @@ def filter_chatgpt(df, exclude):
 # 필터링된 데이터
 df_filtered = filter_chatgpt(df_analyzed, exclude_chatgpt)
 
-# 전체 통계 계산 (필터링된 데이터 기준)
-total_views_23 = df_filtered['views_2023'].sum()
-total_views_25 = df_filtered['views_2025'].sum()
+# 전체 통계 계산 (원본 데이터 총합 사용)
+total_views_23 = original_total_23
+total_views_25 = original_total_25
 total_change_pct = ((total_views_25 - total_views_23) / total_views_23 * 100) if total_views_23 > 0 else 0
 
-# 카테고리별 점유율 계산 (필터링된 데이터 기준)
-cat_share_23 = df_filtered.groupby('Category')['views_2023'].sum() / total_views_23 * 100 if total_views_23 > 0 else pd.Series()
-cat_share_25 = df_filtered.groupby('Category')['views_2025'].sum() / total_views_25 * 100 if total_views_25 > 0 else pd.Series()
+# 카테고리별 점유율 계산 (필터링된 데이터의 카테고리별 합계를 원본 총합으로 나눔)
+cat_share_23 = df_filtered.groupby('Category')['views_2023'].sum() / original_total_23 * 100 if original_total_23 > 0 else pd.Series()
+cat_share_25 = df_filtered.groupby('Category')['views_2025'].sum() / original_total_25 * 100 if original_total_25 > 0 else pd.Series()
 
 # KPI 카드 표시
 st.markdown("---")
