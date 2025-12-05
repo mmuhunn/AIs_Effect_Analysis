@@ -39,9 +39,15 @@ def load_data():
     df_23['views'] = pd.to_numeric(df_23['views'].replace('\\N', '0'), errors='coerce').fillna(0).astype(int)
     df_25['views'] = pd.to_numeric(df_25['views'].replace('\\N', '0'), errors='coerce').fillna(0).astype(int)
     
-    # 컬럼명 통일 (Category 컬럼은 나중에 재할당하므로 여기서는 제외)
-    df_23 = df_23[['title', 'views']].copy()
-    df_25 = df_25[['title', 'views']].copy()
+    # 원본 총합 저장 (중복 제거 및 필터링 전)
+    original_total_23 = df_23['views'].sum()
+    original_total_25 = df_25['views'].sum()
+    
+    # 같은 title이 여러 번 나오는 경우 조회수 합산 (중복 제거)
+    df_23 = df_23.groupby('title')['views'].sum().reset_index()
+    df_25 = df_25.groupby('title')['views'].sum().reset_index()
+    
+    # 컬럼명 통일
     df_23.columns = ['title', 'views_2023']
     df_25.columns = ['title', 'views_2025']
     
@@ -83,15 +89,15 @@ def load_data():
         
         return True
     
-    # 원본 총합 저장 (필터링 전)
-    original_total_23 = df_23['views_2023'].sum()
-    original_total_25 = df_25['views_2025'].sum()
-    
     df_23 = df_23[df_23['title'].apply(is_clean)]
     df_25 = df_25[df_25['title'].apply(is_clean)]
     
     # 데이터 병합 (Outer Join)
     df_merged = pd.merge(df_23, df_25, on='title', how='outer').fillna(0)
+    
+    # 병합 후 데이터 타입 명시적으로 int로 변환
+    df_merged['views_2023'] = df_merged['views_2023'].astype(int)
+    df_merged['views_2025'] = df_merged['views_2025'].astype(int)
     
     return df_merged, original_total_23, original_total_25
 
@@ -236,8 +242,7 @@ with tab1:
             st.subheader("2023년 (도입기) Top Keywords")
             if len(top_23) > 0:
                 fig23 = px.bar(top_23, x='views_2023', y='title', orientation='h', 
-                               color='Category', title="Feb 2023 Views", 
-                               category_orders={"title": top_23['title'].tolist()},
+                               color='Category', title="Feb 2023 Views",
                                color_discrete_map={'Technology': '#1f77b4', 'Application': '#ff7f0e', 'Social_Impact': '#2ca02c'})
                 fig23.update_layout(yaxis={'categoryorder':'total ascending'}, height=400)
                 st.plotly_chart(fig23, use_container_width=True)
