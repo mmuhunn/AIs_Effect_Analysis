@@ -15,6 +15,7 @@ Wikipedia Pageviews 데이터를 기반으로, ChatGPT 등장 초기(2023)와 �
 - **Streamlit**: 웹 대시보드 프레임워크
 - **Pandas**: 데이터 처리 및 분석
 - **Plotly**: 인터랙티브 시각화
+- **Altair**: 추가 시각화 라이브러리
 - **Python 3.x**
 
 ## 📁 프로젝트 구조
@@ -22,10 +23,10 @@ Wikipedia Pageviews 데이터를 기반으로, ChatGPT 등장 초기(2023)와 �
 ```
 BigData_project/
 ├── data/
-│   ├── monthly_views_202302.csv  # 2023년 2월 데이터
-│   ├── monthly_views_202509.csv  # 2025년 9월 데이터
-│   └── nodes.csv                 # 노드 데이터
+│   ├── spark_2023.csv            # 2023년 Wikipedia Pageviews 데이터
+│   └── spark_2025.csv            # 2025년 Wikipedia Pageviews 데이터
 ├── app.py                        # Streamlit 메인 애플리케이션
+├── spark_analysis.py             # Spark 기반 데이터 분석 스크립트
 ├── requirements.txt              # 필요한 패키지 목록
 └── README.md                     # 프로젝트 설명서
 ```
@@ -36,7 +37,7 @@ BigData_project/
 
 ```bash
 git clone https://github.com/mmuhunn/AIs_Effect_Analysis.git
-cd AIs_Effect_Analysis
+cd BigData_project
 ```
 
 ### 2. 가상환경 생성 (선택사항)
@@ -67,14 +68,32 @@ streamlit run app.py
 
 ### 필터 옵션
 
-- **ChatGPT 제외**: 사이드바에서 ChatGPT 관련 키워드를 분석에서 제외할 수 있습니다.
+- **ChatGPT 제외**: 사이드바에서 ChatGPT 관련 키워드를 분석에서 제외할 수 있습니다. 이를 통해 ChatGPT의 영향력을 제외하고 다른 키워드들의 변화를 더 명확하게 비교할 수 있습니다.
 - **카테고리 필터**: Trend Overview 탭에서 특정 카테고리만 선택하여 분석할 수 있습니다.
 
 ### 주요 분석 기능
 
-1. **Trend Overview**: 카테고리별 체크박스를 통해 원하는 카테고리만 필터링하여 Top 키워드 순위를 확인할 수 있습니다.
-2. **Category Shift**: Technology, Application, Social_Impact 카테고리별 점유율 변화를 시각적으로 확인할 수 있습니다.
-3. **Keyword Search**: 키워드를 검색하여 해당 키워드의 2023년과 2025년 조회수 변화를 분석할 수 있습니다.
+1. **Trend Overview**: 
+   - 연도별 Top 키워드 순위 비교
+   - 카테고리별 체크박스를 통해 원하는 카테고리만 필터링하여 Top 키워드 순위를 확인할 수 있습니다.
+   - 급상승/급하락 키워드 분석
+
+2. **Category Shift**: 
+   - Technology, Application, Social_Impact 카테고리별 점유율 변화를 시각적으로 확인할 수 있습니다.
+   - 카테고리별 조회수 총량 및 비율 변화 분석
+
+3. **Deep Insights**: 
+   - 변화 패턴 산점도 분석
+   - 카테고리별 평균 변화율 비교
+   - 신규/사라진 키워드 추적
+
+4. **Keyword Search**: 
+   - 키워드를 검색하여 해당 키워드의 2023년과 2025년 조회수 변화를 분석할 수 있습니다.
+   - 변화율 및 절대 변화량 확인
+
+5. **Raw Data**: 
+   - 원본 데이터 탐색 및 필터링
+   - 데이터 다운로드 기능
 
 ## 📊 데이터 카테고리
 
@@ -82,12 +101,20 @@ streamlit run app.py
 - **Application**: AI 응용 사례 (Automation, AI_art, Chatbot 등)
 - **Social_Impact**: AI의 사회적 영향 (Job_loss, Layoff, AI_ethics 등)
 
-## 🔍 노이즈 필터링
+## 🔍 데이터 처리 및 필터링
+
+### 노이즈 필터링
 
 다음 키워드들은 자동으로 필터링됩니다:
 - 스포츠 관련: NFL, Playoff, Championship, Football, Basketball 등
 - Wikipedia 내부 페이지: File:, Wikipedia:, User:, Talk: 등
 - 기타 노이즈: DiBiase, Tobias, Len_Bias 등
+
+### 데이터 처리 특징
+
+- 제목에 쉼표가 포함된 경우를 자동으로 처리
+- 중복된 키워드의 조회수 자동 합산
+- `\N` 값은 0으로 처리하여 안정적인 분석 보장
 
 ## 📝 라이선스
 
